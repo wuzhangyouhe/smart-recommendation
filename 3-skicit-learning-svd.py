@@ -1,8 +1,6 @@
 import numpy as np
 import pandas as pd
-
-header = ['user_id', 'item_id', 'rating', 'timestamp']
-df = pd.read_csv('ml-100k/u.data', sep='\t', names=header)
+import matplotlib.pyplot as plt
 
 #Reading users file:
 u_cols = ['user_id', 'age', 'sex', 'occupation', 'zip_code']
@@ -24,14 +22,26 @@ items = pd.read_csv('ml-100k/u.item', sep='|', names=i_cols,
 # print user
 print users.shape
 print users.head()
+print users.describe()
+users.hist()
+plt.show()
 
 # print rating
 print ratings.shape
 print ratings.head()
+print ratings.describe()
+ratings.hist()
+plt.show()
 
 # print items
 print items.shape
 print items.head()
+print items.describe()
+items.hist()
+plt.show()
+
+header = ['user_id', 'item_id', 'rating', 'timestamp']
+df = pd.read_csv('ml-100k/u.data', sep='\t', names=header, encoding='latin-1')
 
 n_users = df.user_id.unique().shape[0]
 n_items = df.item_id.unique().shape[0]
@@ -75,6 +85,7 @@ def rmse(prediction, ground_truth):
 
 print 'User-based CF RMSE: ' + str(rmse(user_prediction, test_data_matrix))
 print 'Item-based CF RMSE: ' + str(rmse(item_prediction, test_data_matrix))
+print user_prediction, item_prediction
 
 # Model-based collaborative filter
 sparsity=round(1.0-len(df)/float(n_users*n_items),3)
