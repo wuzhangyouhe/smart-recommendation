@@ -45,16 +45,17 @@ ratings_test = pd.read_csv('ml-100k/ua.test', sep='\t', names=r_cols, encoding='
 print ratings_base.shape, ratings_test.shape
 
 import graphlab
+graphlab.product_key.set_product_key("25BC-E366-0504-659F-CA41-8F4A-8E3E-2459")
 train_data = graphlab.SFrame(ratings_base)
 test_data = graphlab.SFrame(ratings_test)
 
-# A simple popularity model
+print ("1. A simple popularity model ")
 popularity_model = graphlab.popularity_recommender.create(train_data, user_id='user_id', item_id='movie_id', target='rating')
 
 #Get recommendations for first 5 users and print them
 #users = range(1,6) specifies user ID of first 5 users
 #k=5 specifies top 5 recommendations to be given
-popularity_recomm = popularity_model.recommend(users=range(1,6),k=5)
+popularity_recomm = popularity_model.recommend(users=range(1,6),k=10)
 popularity_recomm.print_rows(num_rows=25)
 
 ratings_base.groupby(by='movie_id')['rating'].mean().sort_values(ascending=False).head(20)
@@ -63,10 +64,11 @@ ratings_base.groupby(by='movie_id')['rating'].mean().sort_values(ascending=False
 item_sim_model = graphlab.item_similarity_recommender.create(train_data, user_id='user_id', item_id='movie_id', target='rating', similarity_type='pearson')
 
 #Make Recommendations collaberative filters
-item_sim_recomm = item_sim_model.recommend(users=range(1,6),k=5)
+print ("2. To colleborate with filters")
+item_sim_recomm = item_sim_model.recommend(users=range(1,6),k=10)
 item_sim_recomm.print_rows(num_rows=25)
 
-# eveluate models
+print("3. eveluate models ")
 model_performance = graphlab.compare(test_data, [popularity_model, item_sim_model])
 graphlab.show_comparison(model_performance,[popularity_model, item_sim_model])
 
