@@ -13,7 +13,7 @@ ratings = pd.read_csv('ml-100k/u.data', sep='\t', names=r_cols,
  encoding='latin-1')
 
 #Reading items file:
-i_cols = ['movie id', 'movie title' ,'release date','video release date', 'IMDb URL', 'unknown', 'Action', 'Adventure',
+i_cols = ['movie_id', 'movie_title' ,'publish date','video release date', 'IMDb URL', 'unknown', 'Action', 'Adventure',
  'Animation', 'Children\'s', 'Comedy', 'Crime', 'Documentary', 'Drama', 'Fantasy',
  'Film-Noir', 'Horror', 'Musical', 'Mystery', 'Romance', 'Sci-Fi', 'Thriller', 'War', 'Western']
 items = pd.read_csv('ml-100k/u.item', sep='|', names=i_cols,
@@ -37,7 +37,7 @@ plt.show()
 print items.shape
 print items.head()
 print items.describe()
-items.hist()
+items.hist(figsize=(16,16))
 plt.show()
 
 header = ['user_id', 'item_id', 'rating', 'timestamp']
@@ -51,10 +51,11 @@ from sklearn import cross_validation as cv
 train_data, test_data = cv.train_test_split(df, test_size = 0.20)
 
 # Memory-based collaborative filtering
+print "1, Memory-based collaborative filtering \n"
 train_data_matrix = np.zeros((n_users, n_items))
 for line in train_data.itertuples():
     train_data_matrix[line[1]-1, line[2]-1] = line[3]
-
+print train_data_matrix, line
 test_data_matrix = np.zeros((n_users, n_items))
 for line in test_data.itertuples():
     test_data_matrix[line[1]-1, line[2]-1] = line[3]
@@ -85,9 +86,10 @@ def rmse(prediction, ground_truth):
 
 print 'User-based CF RMSE: ' + str(rmse(user_prediction, test_data_matrix))
 print 'Item-based CF RMSE: ' + str(rmse(item_prediction, test_data_matrix))
-print user_prediction, item_prediction
+print user_prediction[0], '\n', item_prediction[0]
 
 # Model-based collaborative filter
+print "2, Model-based collaborative filter \n"
 sparsity=round(1.0-len(df)/float(n_users*n_items),3)
 print 'The sparsity level of MovieLens100K is ' +  str(sparsity*100) + '%'
 
@@ -100,3 +102,29 @@ u, s, vt = svds(train_data_matrix, k = 20)
 s_diag_matrix=np.diag(s)
 X_pred = np.dot(np.dot(u, s_diag_matrix), vt)
 print 'User-based CF RMSE: ' + str(rmse(X_pred, test_data_matrix))
+#plt.figure(figsize=(20,10))
+#plt.plot(X_pred)
+#plt.show()
+
+def top_cosine_similarity(data, movie_id, top_n=10):
+    index = movie_id - 1 # Movie id starts from 1
+    movie_row = data[index, :]
+    magnitude = np.sqrt(np.einsum('ij, ij -> i', data, data))
+    similarity = np.dot(movie_row, data.T) / (magnitude[index] * magnitude)
+    sort_indexes = np.argsort(-similarity)
+    return sort_indexes[:top_n]
+
+# Helper function to print top N similar movies
+def print_similar_movies(movie_data, movie_id, top_indexes):
+    print('Recommendations for {0}: \n'.format(
+    movie_data[movie_data.movie_id == movie_id].movie_title.values[0]))
+    for id in top_indexes + 1:
+        print(movie_data[movie_data.movie_id == id].movie_title.values[0])
+        
+k = 50
+movie_id = 100 # Grab an id from items table
+top_n = 10
+
+sliced = vt.T[:, :k] # representative data
+indexes = top_cosine_similarity(sliced, movie_id, top_n)
+print_similar_movies(items, movie_id, indexes)
