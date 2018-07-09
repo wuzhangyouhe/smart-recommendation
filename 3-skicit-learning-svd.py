@@ -8,15 +8,15 @@ users = pd.read_csv('ml-100k/u.user', sep='|', names=u_cols,
  encoding='latin-1')
 
 #Reading ratings file:
-r_cols = ['user_id', 'movie_id', 'rating', 'unix_timestamp']
+r_cols = ['user_id', 'food_id', 'rating', 'unix_timestamp']
 ratings = pd.read_csv('ml-100k/u.data', sep='\t', names=r_cols,
  encoding='latin-1')
 
 #Reading items file:
-i_cols = ['movie_id', 'movie_title' ,'publish date','video release date', 'IMDb URL', 'unknown', 'Action', 'Adventure',
- 'Animation', 'Children\'s', 'Comedy', 'Crime', 'Documentary', 'Drama', 'Fantasy',
- 'Film-Noir', 'Horror', 'Musical', 'Mystery', 'Romance', 'Sci-Fi', 'Thriller', 'War', 'Western']
-items = pd.read_csv('ml-100k/u.item', sep='|', names=i_cols,
+i_cols = ['food_id', 'food_title' ,'publish date','food release date', 'IMDb URL', 'yeast', ' salt', ' coconut oil',
+ 'Deluxe Nut Mix	', ' sugar', 'honey', 'pecans', 'wheat', ' organic oat flour', 'onion',
+ ' garlic', 'malt', 'barley', 'soybeans', ' citric acid', 'potato', 'eggs', 'vegetable oil', 'fruit']
+items = pd.read_csv('ml-100k/u.item1', sep=',', names=i_cols,
  encoding='latin-1')
 
 # print user
@@ -91,10 +91,9 @@ print user_prediction[0], '\n', item_prediction[0]
 # Model-based collaborative filter
 print "2, Model-based collaborative filter \n"
 sparsity=round(1.0-len(df)/float(n_users*n_items),3)
-print 'The sparsity level of MovieLens100K is ' +  str(sparsity*100) + '%'
+print 'The sparsity level of Food amount 100k is ' +  str(sparsity*100) + '%'
 
 # SVD(Singular value decomposition) algorithm
-import scipy.sparse as sp
 from scipy.sparse.linalg import svds
 
 #get SVD components from train matrix. Choose k.
@@ -102,29 +101,34 @@ u, s, vt = svds(train_data_matrix, k = 20)
 s_diag_matrix=np.diag(s)
 X_pred = np.dot(np.dot(u, s_diag_matrix), vt)
 print 'User-based CF RMSE: ' + str(rmse(X_pred, test_data_matrix))
-#plt.figure(figsize=(20,10))
-#plt.plot(X_pred)
-#plt.show()
 
-def top_cosine_similarity(data, movie_id, top_n=10):
-    index = movie_id - 1 # Movie id starts from 1
-    movie_row = data[index, :]
+def top_cosine_similarity(data, food_id, top_n=10):
+    index = food_id - 1 # Food id starts from 1
+    food_row = data[index, :]
     magnitude = np.sqrt(np.einsum('ij, ij -> i', data, data))
-    similarity = np.dot(movie_row, data.T) / (magnitude[index] * magnitude)
+    similarity = np.dot(food_row, data.T) / (magnitude[index] * magnitude)
     sort_indexes = np.argsort(-similarity)
     return sort_indexes[:top_n]
 
 # Helper function to print top N similar movies
-def print_similar_movies(movie_data, movie_id, top_indexes):
-    print('Recommendations for {0}: \n'.format(
-    movie_data[movie_data.movie_id == movie_id].movie_title.values[0]))
+def print_similar_movies(food_data, food_id, top_indexes):
+    print('\n Recommendations for {0}: \n'.format(food_data[food_data.food_id == food_id].food_title.values[0]))
     for id in top_indexes + 1:
-        print(movie_data[movie_data.movie_id == id].movie_title.values[0])
+        print(food_data[food_data.food_id == id].food_title.values[0])
         
 k = 50
-movie_id = 100 # Grab an id from items table
+food_id = 10 # Grab an id from items table
 top_n = 10
 
 sliced = vt.T[:, :k] # representative data
-indexes = top_cosine_similarity(sliced, movie_id, top_n)
-print_similar_movies(items, movie_id, indexes)
+indexes = top_cosine_similarity(sliced, food_id, top_n)
+print_similar_movies(items, food_id, indexes)
+
+## SVD and PCA relationship
+#normalised_mat = ratings_mat - np.matrix(np.mean(ratings_mat, 1)).T
+#cov_mat = np.cov(normalised_mat)
+#evals, evecs = np.linalg.eig(cov_mat)
+#
+#sliced = evecs[:, :k] # representative data
+#top_indexes = top_cosine_similarity(sliced, movie_id, top_n)
+#print_similar_movies(items, movie_id, top_indexes)
