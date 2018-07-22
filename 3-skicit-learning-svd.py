@@ -1,54 +1,53 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
-#Reading users file:
-u_cols = ['user_id', 'age', 'sex', 'occupation', 'zip_code']
-users = pd.read_csv('ml-100k/u.user', sep='|', names=u_cols,
- encoding='latin-1')
-
-#Reading ratings file:
-r_cols = ['user_id', 'food_id', 'rating', 'unix_timestamp']
-ratings = pd.read_csv('ml-100k/u.data', sep='\t', names=r_cols,
- encoding='latin-1')
-
-#Reading items file:
-i_cols = ['food_id', 'food_title' ,'publish date','food release date', 'IMDb URL', 'yeast', ' salt', ' coconut oil',
- 'Deluxe Nut Mix	', ' sugar', 'honey', 'pecans', 'wheat', ' organic oat flour', 'onion',
- ' garlic', 'malt', 'barley', 'soybeans', ' citric acid', 'potato', 'eggs', 'vegetable oil', 'fruit']
-items = pd.read_csv('ml-100k/u.item1', sep=',', names=i_cols,
- encoding='latin-1')
-
-# print user
-print users.shape
-print users.head()
-print users.describe()
-users.hist()
-plt.show()
-
-# print rating
-print ratings.shape
-print ratings.head()
-print ratings.describe()
-ratings.hist()
-plt.show()
-
-# print items
-print items.shape
-print items.head()
-print items.describe()
-items.hist(figsize=(16,16))
-plt.show()
-
-header = ['user_id', 'item_id', 'rating', 'timestamp']
-df = pd.read_csv('ml-100k/u.data', sep='\t', names=header, encoding='latin-1')
-
-n_users = df.user_id.unique().shape[0]
-n_items = df.item_id.unique().shape[0]
-print 'Number of users = ' + str(n_users) + ' | Number of movies = ' + str(n_items)
-
 from sklearn import cross_validation as cv
-train_data, test_data = cv.train_test_split(df, test_size = 0.20)
+from scipy.sparse.linalg import svds
+from sklearn.metrics import mean_squared_error
+from math import sqrt
+
+class readDataset :
+
+    def __init__(self, userPath, ratingPath, dealPath):
+        self.up = userPath
+        self.rp = ratingPath
+        self.dp = dealPath
+
+    def getUsers (self):
+        u_cols = ['user_id', 'age', 'sex', 'occupation', 'zip_code']
+        users = pd.read_csv(self.up, sep='|', names = u_cols, encoding='latin-1')
+        return users
+
+    def getRatings (self):
+        r_cols = ['user_id', 'food_id', 'rating', 'unix_timestamp']
+        ratings = pd.read_csv(self.rp, sep='\t', names = r_cols, encoding='latin-1')
+        return ratings
+
+    def getDeals (self):
+        d_cols = ['food_id', 'food_title', 'publish date', 'food release date', 'IMDb URL', 'yeast', ' salt',
+                  ' coconut oil',
+                  'Deluxe Nut Mix	', ' sugar', 'honey', 'pecans', 'wheat', ' organic oat flour', 'onion',
+                  ' garlic', 'malt', 'barley', 'soybeans', ' citric acid', 'promo', 'discount 25%', 'discount 50%',
+                  'discount 75%']
+        deals = pd.read_csv(self.dp, sep=',', names = d_cols, encoding='latin-1')
+        return deals
+
+x = readDataset('ml-100k/u.user', 'ml-100k/u.data', 'ml-100k/u.item1')
+print x.getUsers().shape, '\n' , x.getRatings().shape, '\n' , x.getDeals().shape
+print x.getUsers().head(10) , '\n', x.getRatings().head(), '\n', x.getDeals().head()
+print x.getUsers().describe(), '\n', x.getRatings().describe(), '\n', x.getDeals().describe()
+
+# x.getUsers().hist()
+# plt.show()
+# x.getRatings().hist()
+# plt.show()
+# x.getDeals().hist(figsize=(16,16))
+# plt.show()
+
+n_users = x.getRatings().user_id.unique().shape[0]
+n_items = x.getRatings().food_id.unique().shape[0]
+
+train_data, test_data = cv.train_test_split(x.getRatings(), test_size = 0.30)
 
 # Memory-based collaborative filtering
 print "1, Memory-based collaborative filtering \n"
@@ -76,9 +75,6 @@ def predict(ratings, similarity, type='user'):
 item_prediction = predict(train_data_matrix, item_similarity, type='item')
 user_prediction = predict(train_data_matrix, user_similarity, type='user')
 
-from sklearn.metrics import mean_squared_error
-from math import sqrt
-
 def rmse(prediction, ground_truth):
     prediction = prediction[ground_truth.nonzero()].flatten()
     ground_truth = ground_truth[ground_truth.nonzero()].flatten()
@@ -90,14 +86,12 @@ print user_prediction[0], '\n', item_prediction[0]
 
 # Model-based collaborative filter
 print "2, Model-based collaborative filter \n"
-sparsity=round(1.0-len(df)/float(n_users*n_items),3)
+sparsity=round(1.0-len(x.getRatings())/float(n_users*n_items),3)
 print 'The sparsity level of Food amount 100k is ' +  str(sparsity*100) + '%'
 
 # SVD(Singular value decomposition) algorithm
-from scipy.sparse.linalg import svds
-
-#get SVD components from train matrix. Choose k.
-u, s, vt = svds(train_data_matrix, k = 20)
+# get SVD components from train matrix. Choose k.
+u, s, vt = svds(train_data_matrix, k = 50)
 s_diag_matrix=np.diag(s)
 X_pred = np.dot(np.dot(u, s_diag_matrix), vt)
 print 'User-based CF RMSE: ' + str(rmse(X_pred, test_data_matrix))
@@ -117,18 +111,18 @@ def print_similar_movies(food_data, food_id, top_indexes):
         print(food_data[food_data.food_id == id].food_title.values[0])
         
 k = 50
-food_id = 10 # Grab an id from items table
+food_id = 110 # Grab an id from items table
 top_n = 10
 
 sliced = vt.T[:, :k] # representative data
 indexes = top_cosine_similarity(sliced, food_id, top_n)
-print_similar_movies(items, food_id, indexes)
+print_similar_movies(x.getDeals(), food_id, indexes)
 
-## SVD and PCA relationship
-#normalised_mat = ratings_mat - np.matrix(np.mean(ratings_mat, 1)).T
-#cov_mat = np.cov(normalised_mat)
-#evals, evecs = np.linalg.eig(cov_mat)
+# # SVD and PCA relationship
+# normalised_mat = ratings_mat - np.matrix(np.mean(ratings_mat, 1)).T
+# cov_mat = np.cov(normalised_mat)
+# evals, evecs = np.linalg.eig(cov_mat)
 #
-#sliced = evecs[:, :k] # representative data
-#top_indexes = top_cosine_similarity(sliced, movie_id, top_n)
-#print_similar_movies(items, movie_id, top_indexes)
+# sliced = evecs[:, :k] # representative data
+# top_indexes = top_cosine_similarity(sliced, food_id, top_n)
+# print_similar_movies(x.getDeals(), food_id, top_indexes)
