@@ -44,6 +44,34 @@ print x.getUsers().describe(), '\n', x.getRatings().describe(), '\n', x.getDeals
 # x.getDeals().hist(figsize=(12,8))
 # plt.show()
 
+# class train_function :
+#
+#     def __init__(self, ratingData):
+#         self.ratingData = ratingData
+#
+#     def split_dataset(self):
+#
+#         users = self.ratingData.user_id.unique().shape[0]
+#         deals = self.ratingData.food_id.unique().shape[0]
+#
+#         train_data, test_data = cv.train_test_split(x.getRatings(), test_size=0.30)
+#         train_data_matrix = np.zeros((users, deals))
+#         for line in train_data.itertuples():
+#             train_data_matrix[line[1] - 1, line[2] - 1] = line[3]
+#         print train_data_matrix, line
+#         test_data_matrix = np.zeros((users, deals))
+#         for line in test_data.itertuples():
+#             test_data_matrix[line[1] - 1, line[2] - 1] = line[3]
+#
+#         return train_data_matrix, test_data_matrix
+#
+#     def rmse(self, prediction, ground_truth):
+#         prediction = prediction[ground_truth.nonzero()].flatten()
+#         ground_truth = ground_truth[ground_truth.nonzero()].flatten()
+#         return sqrt(mean_squared_error(prediction, ground_truth))
+#
+# n_users = train_function(x.getRatings()).split_dataset()
+
 users = x.getRatings().user_id.unique().shape[0]
 deals = x.getRatings().food_id.unique().shape[0]
 
@@ -60,6 +88,29 @@ def rmse(prediction, ground_truth):
     prediction = prediction[ground_truth.nonzero()].flatten()
     ground_truth = ground_truth[ground_truth.nonzero()].flatten()
     return sqrt(mean_squared_error(prediction, ground_truth))
+
+# Memory-based collaborative filtering
+# print "1, Memory-based collaborative filtering \n"
+# from sklearn.metrics.pairwise import pairwise_distances
+# user_similarity = pairwise_distances(train_data_matrix, metric='cosine')
+# item_similarity = pairwise_distances(train_data_matrix.T, metric='cosine')
+#
+# def predict(ratings, similarity, type='user'):
+#     if type == 'user':
+#         mean_user_rating = ratings.mean(axis=1)
+#         ratings_diff = (ratings - mean_user_rating[:, np.newaxis])
+#         pred = mean_user_rating[:, np.newaxis] + similarity.dot(ratings_diff) / np.array([np.abs(similarity).sum(axis=1)]).T
+#     elif type == 'item':
+#         pred = ratings.dot(similarity) / np.array([np.abs(similarity).sum(axis=1)])
+#     return pred
+#
+# item_prediction = predict(train_data_matrix, item_similarity, type='item')
+# user_prediction = predict(train_data_matrix, user_similarity, type='user')
+#
+#
+# print 'User-based CF RMSE: ' + str(rmse(user_prediction, test_data_matrix))
+# print 'Item-based CF RMSE: ' + str(rmse(item_prediction, test_data_matrix))
+# print user_prediction[0], '\n', item_prediction[0]
 
 # Model-based collaborative filter
 sparsity=round(1.0-len(x.getRatings())/float(users*deals),3)
@@ -87,9 +138,18 @@ def print_similar_movies(food_data, food_id, top_indexes):
         print(food_data[food_data.food_id == id].food_title.values[0])
         
 k = 50
-food_id = 10 # Grab an id from items table
+food_id = 110 # Grab an id from items table
 top_n = 10
 
 sliced = vt.T[:, :k] # representative data
 indexes = top_cosine_similarity(sliced, food_id, top_n)
 print_similar_movies(x.getDeals(), food_id, indexes)
+
+# # SVD and PCA relationship
+# normalised_mat = ratings_mat - np.matrix(np.mean(ratings_mat, 1)).T
+# cov_mat = np.cov(normalised_mat)
+# evals, evecs = np.linalg.eig(cov_mat)
+#
+# sliced = evecs[:, :k] # representative data
+# top_indexes = top_cosine_similarity(sliced, food_id, top_n)
+# print_similar_movies(x.getDeals(), food_id, top_indexes)
