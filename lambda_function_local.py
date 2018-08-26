@@ -1,7 +1,11 @@
+#!/usr/local/bin/python 
+import json
 import numpy as np
 import pandas as pd
 from scipy.sparse.linalg import svds
-import json
+from BaseHTTPServer import BaseHTTPRequestHandler
+import threading
+import random
 
 class readDataset :
 
@@ -46,27 +50,58 @@ def print_similar_deals(deal_data, deal_id, top_indexes):
         child_rcmmd['Deal id'] = id
         child_rcmmd['Deal name'] = deal_data[deal_data.deal_id == id].deal_title.values[0]
         rcmmd.append(child_rcmmd)
-    print json.dumps(rcmmd, indent=4, separators=(',',':'))
+    output= json.dumps(rcmmd, indent=4, separators=(',',':'))
+    return output
 
-
-trigger_event= json.dumps({ "deal id": 123 }, indent=4, separators=(',', ': '))
-
-
-def main():
+def html_response():
     x = readDataset('ml-100k/u.user', 'ml-100k/u.data', 'ml-100k/u.item1')
     users = x.getRatings().user_id.unique().shape[0]
     deals = x.getRatings().deal_id.unique().shape[0]
     current_data = np.zeros((users, deals))
     # SVD(Singular value decomposition) algorithm
     u, s, vt = svds(current_data, k = 50)
-    event = json.loads(trigger_event)
     k = 50
-    deal_id = event["deal id"] # Grab an id from items table
+    deal_id = random.randint(1,200) # Grab an id from items table
     top_n = 11
 
     sliced = vt.T[:, :k] # representative data
     indexes = top_cosine_similarity(sliced, deal_id, top_n)
     result = print_similar_deals(x.getDeals(), deal_id, indexes)
-    return result
+    html='<h1 style="text-align:center;">Prototype - Demo Lambda event trigger function in smart engine</h1>'
+    body="""<div style="text-align:center;">
+	    <h3>Customer clicked Deal id: {0}</h3>
+	    <h4>The deals recommendations for: {1}</h4>
+	    <h4>Top 10 deals recommended from Smart engine</h4>
+	    <table border=1 style="margin: 0 auto;">
+	    <br>
+	    {2}
+	    </br>
+	    </table>
+	    </div>
+	    """.format(deal_id, x.getDeals()[x.getDeals().deal_id == deal_id].deal_title.values[0],json.loads(result))
+    html = html + body
+    return html
 
-main()
+class GetHandler(BaseHTTPRequestHandler):
+    def _set_headers(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'text/html')
+        self.end_headers()
+
+    def do_HEAD(self):
+        self._set_headers()
+
+    def do_GET(self):
+        self._set_headers()
+        message = html_response()
+        self.wfile.write(message.encode('utf-8'))
+
+    def do_POST(self):
+        self.do_GET()
+
+if __name__ == '__main__':
+    from BaseHTTPServer import HTTPServer
+
+    server = HTTPServer(('localhost', 8000), GetHandler)
+    print('Starting server, use <Ctrl-C> to stop')
+    server.serve_forever()
