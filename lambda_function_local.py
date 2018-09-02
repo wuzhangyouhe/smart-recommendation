@@ -51,10 +51,15 @@ def print_similar_deals(deal_data, deal_id, top_indexes):
         child_rcmmd['Deal name'] = deal_data[deal_data.deal_id == id].deal_title.values[0]
         rcmmd.append(child_rcmmd)
     output= json.dumps(rcmmd, indent=4, separators=(',',':'))
+    print output
     return output
 
 def html_response():
     x = readDataset('ml-100k/u.user', 'ml-100k/u.data', 'ml-100k/u.item1')
+    print x.getUsers().shape, '\n' , x.getRatings().shape, '\n' , x.getDeals().shape
+    print x.getUsers().head(10) , '\n', x.getRatings().head(), '\n', x.getDeals().head()
+    print x.getUsers().describe(), '\n', x.getRatings().describe(), '\n', x.getDeals().describe()
+
     users = x.getRatings().user_id.unique().shape[0]
     deals = x.getRatings().deal_id.unique().shape[0]
     current_data = np.zeros((users, deals))

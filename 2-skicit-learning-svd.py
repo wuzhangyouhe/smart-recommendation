@@ -100,7 +100,7 @@ def print_similar_movies(deal_data, deal_id, top_indexes):
         print(id, deal_data[deal_data.deal_id == id].deal_title.values[0])
         
 k = 50
-deal_id = 10 # Grab an id from items table
+deal_id = 123 # Grab an id from items table
 top_n = 10
 
 sliced = vt.T[:, :k] # representative data
