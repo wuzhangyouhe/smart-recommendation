@@ -21,3 +21,4 @@ sudo pip install pydotplus
 sudo pip install graphviz
 sudo pip install Ipython
 sudo pip install tensorrec
+sudo pip install flask flask-jsonpify flask-sqlalchemy flask-restful
