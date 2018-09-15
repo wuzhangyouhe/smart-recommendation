@@ -97,23 +97,31 @@ def print_similar_deals(deal_data, deal_id, top_indexes):
     print output
     return output
 
-class Users(Resource):
-    def post(self):
-        conn = db_connect.connect()
-        query = conn.excute('''insert into users(user_id, name) VALUES(?, ?)''')
-        db.commit()
+@app.route('/submitUsers', methods=['POST']) 
+def postUser():
+    content = request.get_json()
+    print (content)
+    users=[]
+    columns = ['user_id', 'name']
+    for data in content:
+        users.append(data[c] for c in columns)
+    print users
+    #conn = db_connect.connect()
+    #query = conn.execute('''insert into users(user_id, name) VALUES(?, ?)''',keys)
+    #db.commit()
+    return '{ "message":"Users posted successful!" }'
             
 
 class Deals(Resource):
     def post(self):
         conn = db_connect.connect()
-        query = conn.excute('''insert into deals(deal_id, father_day , ramadan , new_year_day , christmas_day , july_14 , mother_day , super_sunday , fantastic_friday , discount_5 , discount_10 , discount_15 , discount_20 , discount_25 , discount_30 , discount_35 , discount_40 , discount_45 , discount_50 , discount_over_50 ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''')
+        query = conn.execute('''insert into deals(deal_id, father_day , ramadan , new_year_day , christmas_day , july_14 , mother_day , super_sunday , fantastic_friday , discount_5 , discount_10 , discount_15 , discount_20 , discount_25 , discount_30 , discount_35 , discount_40 , discount_45 , discount_50 , discount_over_50 ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''')
         db.commit()
 
 class Ratings(Resource):
     def post(self):
         conn = db_connect.connect()
-        query = conn.excute('''insert into ratings(user-id, deal_id, rates) VALUES(?,?,?)''')
+        query = conn.execute('''insert into ratings(user-id, deal_id, rates) VALUES(?,?,?)''')
         db.commit()
         
 class rmdDeals(Resource):
@@ -134,7 +142,7 @@ class rmdDeals(Resource):
         result = print_similar_deals(x.getDeals(), deal_id, indexes)
         return result
 
-api.add_resource(Users, '/submitUsers') # Route_1
+#api.add_resource(Users, '/submitUsers') # Route_1
 api.add_resource(Deals, '/submitDeals') # Route_2
 api.add_resource(Ratings, '/submitRatings') # Route_3
 api.add_resource(rmdDeals, '/getRmdDeals/<clicked_deal_id>') # Route_4
