@@ -2,7 +2,7 @@
 
 virtualenv lambda_prototype
 source lambda_prototype/bin/activate
-sudo apt-get install -y build-essential libssl-dev libffi-dev python-dev python-tk tcpflow git tshark curl vim
+sudo apt-get install -y build-essential libssl-dev libffi-dev python-dev python-tk tcpflow git curl vim
 curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
 sudo python get-pip.py
 sudo pip install numpy pandas SciPy

@@ -3,37 +3,14 @@ from flask_restful import Resource, Api
 from sqlalchemy import create_engine
 from json import dumps
 import json
-#from flask.ext.jsonpify import jsonify
 import numpy as np
 import pandas as pd
 from scipy.sparse.linalg import svds
 from array import array
+import csv
 
-db_connect = create_engine('sqlite:///localEngine.db')
 app = Flask(__name__)
 api = Api(app)
-
-#class readDataset :
-#
-#    def __init__(self, userPath, ratingPath, dealPath):
-#        self.up = userPath
-#        self.rp = ratingPath
-#        self.dp = dealPath
-#
-#    def getUsers (self):
-#        u_cols = ['user_id', 'name']
-#        users = pd.read_csv(self.up, sep='|', names = u_cols, encoding='latin-1')
-#        return users
-#
-#    def getRatings (self):
-#        r_cols = ['user_id', 'deal_id', 'rating']
-#        ratings = pd.read_csv(self.rp, sep='|', names = r_cols, encoding='latin-1')
-#        return ratings
-#
-#    def getDeals (self):
-#        d_cols = ['deal_id', 'father_day' , 'ramadan' , 'new_year_day' , 'christmas_day' , 'july_14' ,'mother_day' , 'super_sunday' , 'fantastic_friday' , 'discount_5' , 'discount_10' , 'discount_15' , 'discount_20' , 'discount_25' , 'discount_30' , 'discount_35' , 'discount_40' , 'discount_45' , 'discount_50' , 'discount_over_50']
-#        deals = pd.read_csv(self.dp, sep='|', names = d_cols, encoding='latin-1')
-#        return deals
 
 class readDataset :
 
@@ -43,39 +20,19 @@ class readDataset :
         self.dp = dealPath
 
     def getUsers (self):
-        u_cols = ['user_id', 'age', 'sex', 'occupation', 'zip_code']
-        users = pd.read_csv(self.up, sep='|', names = u_cols, encoding='latin-1')
+        u_cols = ['user_id', 'age']
+        users = pd.read_csv(self.up, sep=',', names = u_cols, encoding='latin-1')
         return users
 
     def getRatings (self):
-        r_cols = ['user_id', 'deal_id', 'rating', 'unix_timestamp']
-        ratings = pd.read_csv(self.rp, sep='\t', names = r_cols, encoding='latin-1')
+        r_cols = ['user_id', 'deal_id', 'rating']
+        ratings = pd.read_csv(self.rp, sep=',', names = r_cols, encoding='latin-1')
         return ratings
 
     def getDeals (self):
-        d_cols = ['deal_id', 'deal_title', 'publish date', 'create date', 'IMDb URL', 'SG Fathers Day', ' SG Ramadan',
-                  ' SG New Year day',
-                  'SG Christmas', ' SG July 14th', 'SG Mothers Day', 'SG Super Sunday', 'SG Fantastic Friday', 'HK Fathers Day', 'HK Ramadan',
-                  ' HK New Years day', 'HK Christmas', 'HK July 14th', 'HK Mothers Day', ' HK Super Sunday', 'HK Fantastic Friday', 'discount 25%', 'discount 50%',
-                  'discount 75%']
+        d_cols = ['deal_id', 'father_day' , 'ramadan' , 'new_year_day' , 'christmas_day' , 'july_14' , 'mother_day' , 'super_sunday' , 'fantastic_friday' , 'discount_5' , 'discount_10' , 'discount_15' , 'discount_20' , 'discount_25' , 'discount_30' , 'discount_35' , 'discount_40' , 'discount_45' , 'discount_50' , 'discount_over_50']
         deals = pd.read_csv(self.dp, sep=',', names = d_cols, encoding='latin-1')
         return deals
-
-class sqlread :
-    def getUsers(self):
-        conn = db_connect.connect() # connect to database
-        query = conn.execute("select * from users") # This line performs query and returns json result
-        return {'user_id': [i[0] for i in query.cursor.fetchall()]} # 
-
-    def getDeals(self):
-        conn = db_connect.connect() # connect to database
-        query = conn.execute("select * from deals") # This line performs query and returns json result
-        return {'deal_id': [i[0] for i in query.cursor.fetchall()]} # Fetches first column that is deal ID
-
-    def getRatings(self):
-        conn = db_connect.connect() # connect to database
-        query = conn.execute("select * from ratings") # This line performs query and returns json result
-        return {'user-id': [i[0] for i in query.cursor.fetchall()]} # Fetches first column that is rating ID 
 
 def top_cosine_similarity(data, deal_id, top_n):
     index = deal_id - 1 # Deal id starts from 1
@@ -98,37 +55,54 @@ def print_similar_deals(deal_data, deal_id, top_indexes):
     print output
     return output
 
-@app.route('/submitUsers', methods=['POST']) 
-def postUser():
-    content = request.get_json()
-    user0 = array('i')
-    user1 = array('l')
-    columns = ['user_id', 'age']
-    for data in content:                
-        user0.append(data['user_id'])
-    for data in content:
-        user1.append(data['age'])
-    print user0, user1
+class Users(Resource):
 
-    return '{ "message":"Users posted successful!" }'
+    def __init__(self):
+        self.u = None
+    
+    def post(self):
+        content = request.get_json()
+        with open('users.csv', mode='w') as csv_file:
+            columns = ['user_id', 'age']
+            writer = csv.DictWriter(csv_file, fieldnames=columns)
+            for data in content: 
+                writer.writerow({'user_id': data['user_id'], 'age': data['age']})
+        return '{ "message":"Users posted successful!" }'
+
+    def get(self):
+        return self.u
+
             
 
 class Deals(Resource):
     def post(self):
-        conn = db_connect.connect()
-        query = conn.execute('''insert into deals(deal_id, father_day , ramadan , new_year_day , christmas_day , july_14 , mother_day , super_sunday , fantastic_friday , discount_5 , discount_10 , discount_15 , discount_20 , discount_25 , discount_30 , discount_35 , discount_40 , discount_45 , discount_50 , discount_over_50 ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''')
-        db.commit()
+        content = request.get_json()
+        with open('deals.csv', mode='w') as csv_file:
+            columns = ['deal_id', 'father_day' , 'ramadan' , 'new_year_day' , 'christmas_day' , 'july_14' , 'mother_day' , 'super_sunday' , 'fantastic_friday' , 'discount_5' , 'discount_10' , 'discount_15' , 'discount_20' , 'discount_25' , 'discount_30' , 'discount_35' , 'discount_40' , 'discount_45' , 'discount_50' , 'discount_over_50']
+            writer = csv.DictWriter(csv_file, fieldnames=columns)
+            for data in content: 
+                writer.writerow({'deal_id': data[columns[0]], 'father_day': data[columns[1]], 'ramadan': data[columns[2]], 'new_year_day': data[columns[3]], 'christmas_day': data[columns[4]], 'july_14': data[columns[5]], 'mother_day': data[columns[6]], 'super_sunday': data[columns[7]], 'fantastic_friday': data[columns[8]], 'discount_5': data[columns[9]] , 'discount_10': data[columns[10]] , 'discount_15': data[columns[11]] , 'discount_20': data[columns[12]] , 'discount_25': data[columns[13]] , 'discount_30': data[columns[14]] , 'discount_35': data[columns[15]] , 'discount_40': data[columns[16]] , 'discount_45': data[columns[17]] , 'discount_50': data[columns[18]] , 'discount_over_50': data[columns[19]]})
+        return '{ "message":"Deals posted successful!" }'
 
 class Ratings(Resource):
     def post(self):
-        conn = db_connect.connect()
-        query = conn.execute('''insert into ratings(user-id, deal_id, rates) VALUES(?,?,?)''')
-        db.commit()
+        content = request.get_json()
+        with open('rates.csv', mode='w') as csv_file:
+            columns = ['user_id', 'deal_id', 'rates']
+            writer = csv.DictWriter(csv_file, fieldnames=columns)
+            for data in content: 
+                writer.writerow({'user_id': data['user_id'], 'deal_id': data['deal_id'],'rates': data['rates']})
+        return '{ "message":"Rates posted successful!" }'
         
 class rmdDeals(Resource):
     def get(self, clicked_deal_id):
-        #x = readDataset(sqlread.getUsers, sqlread.getDeals, sqlread.getRatings)
-        x = readDataset('ml-100k/u.user', 'ml-100k/u.data', 'ml-100k/u.item1')
+        x = readDataset('users.csv', 'rates.csv', 'deals.csv')
+        
+        # print is used for dataset debugging
+        #print x.getUsers().shape, '\n' , x.getRatings().shape, '\n' , x.getDeals().shape
+        #print x.getUsers().head(10) , '\n', x.getRatings().head(), '\n', x.getDeals().head()
+        #print x.getUsers().describe(), '\n', x.getRatings().describe(), '\n', x.getDeals().describe()
+
         users = x.getRatings().user_id.unique().shape[0]
         deals = x.getRatings().deal_id.unique().shape[0]
         current_data = np.zeros((users, deals))
@@ -143,7 +117,7 @@ class rmdDeals(Resource):
         result = print_similar_deals(x.getDeals(), deal_id, indexes)
         return result
 
-#api.add_resource(Users, '/submitUsers') # Route_1
+api.add_resource(Users, '/submitUsers') # Route_1
 api.add_resource(Deals, '/submitDeals') # Route_2
 api.add_resource(Ratings, '/submitRatings') # Route_3
 api.add_resource(rmdDeals, '/getRmdDeals/<clicked_deal_id>') # Route_4
