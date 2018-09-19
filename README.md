@@ -12,7 +12,7 @@ sh env-installation.sh
 ```
 ## Start recommendation engine
 ```
-python ms-mlengine.py
+python ms-mlengine-local.py
 ```
 ## Use WEB browser access localhost:8080
 ```
