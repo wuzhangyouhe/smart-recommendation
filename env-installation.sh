@@ -2,25 +2,25 @@
 
 virtualenv lambda_prototype
 source lambda_prototype/bin/activate
-sudo apt-get install -y build-essential libssl-dev libffi-dev python-dev python-tk tcpflow git curl vim
+apt-get install -y build-essential libssl-dev libffi-dev python-dev python-tk tcpflow git curl vim
 curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
-sudo python get-pip.py
-sudo pip install numpy pandas SciPy
+python get-pip.py
+pip install numpy pandas SciPy
  
-sudo pip install scikit-learn 
-sudo pip install matplotlib
+pip install scikit-learn 
+pip install matplotlib
  
-sudo pip install csvkit 
-sudo pip install pydotplus 
-sudo pip install graphviz
+pip install csvkit 
+pip install pydotplus 
+pip install graphviz
  
-sudo pip install Ipython
-sudo pip install numpy pandas SciPy
-sudo pip install scikit-learn 
-sudo pip install matplotlib
-sudo pip install csvkit 
-sudo pip install pydotplus 
-sudo pip install graphviz
-sudo pip install Ipython
-sudo pip install tensorrec
-sudo pip install flask flask-jsonpify flask-sqlalchemy flask-restful
+pip install Ipython
+pip install numpy pandas SciPy
+pip install scikit-learn 
+pip install matplotlib
+pip install csvkit 
+pip install pydotplus 
+pip install graphviz
+pip install Ipython
+pip install tensorrec
+pip install flask flask-jsonpify flask-sqlalchemy flask-restful
