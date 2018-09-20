@@ -6,12 +6,15 @@ sudo apt-get install -y build-essential libssl-dev libffi-dev python-dev python-
 curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
 sudo python get-pip.py
 sudo pip install virtualenv 
-
+```
+## Auto start recommendation engine
+```
 sh env-installation.sh
-
 ```
-## Start recommendation engine
+## Manually Start recommendation engine
 ```
+cd chooosie-deals-intelligent-system
+source lambda_prototype/bin/activate
 python ms-mlengine-local.py
 ```
 ## Use WEB browser access localhost:8080
