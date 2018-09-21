@@ -1,6 +1,5 @@
 #!/bin/bash
 
-cd chooosie-deals-intelligent-system
 #virtualenv lambda_prototype
 source lambda_prototype/bin/activate
 apt-get install -y build-essential libssl-dev libffi-dev python-dev python-tk tcpflow curl
