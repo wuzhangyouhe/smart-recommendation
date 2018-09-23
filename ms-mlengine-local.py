@@ -44,12 +44,10 @@ def top_cosine_similarity(data, deal_id, top_n):
 
 # Helper function to print top N similar movies
 def print_similar_deals(deal_data, deal_id, top_indexes):
-    print('\n Recommendations for {0}: \n'.format(deal_data[deal_data.deal_id == deal_id].deal_title.values[0]))
     rcmmd = []
     for id in top_indexes[1:]:
         child_rcmmd = {}
         child_rcmmd['Deal id'] = id
-        child_rcmmd['Deal name'] = deal_data[deal_data.deal_id == id].deal_title.values[0]
         rcmmd.append(child_rcmmd)
     output= json.dumps(rcmmd, indent=4, separators=(',',':'))
     print output
@@ -71,8 +69,6 @@ class Users(Resource):
 
     def get(self):
         return self.u
-
-            
 
 class Deals(Resource):
     def post(self):
@@ -96,13 +92,7 @@ class Ratings(Resource):
         
 class rmdDeals(Resource):
     def get(self, clicked_deal_id):
-        x = readDataset('users.csv', 'rates.csv', 'deals.csv')
-        
-        # print is used for dataset debugging
-        #print x.getUsers().shape, '\n' , x.getRatings().shape, '\n' , x.getDeals().shape
-        #print x.getUsers().head(10) , '\n', x.getRatings().head(), '\n', x.getDeals().head()
-        #print x.getUsers().describe(), '\n', x.getRatings().describe(), '\n', x.getDeals().describe()
-
+        x = readDataset('users.csv', 'rates.csv', 'deals.csv')        
         users = x.getRatings().user_id.unique().shape[0]
         deals = x.getRatings().deal_id.unique().shape[0]
         current_data = np.zeros((users, deals))
