@@ -17,8 +17,9 @@ cd chooosie-deals-intelligent-system
 source lambda_prototype/bin/activate
 python ms-mlengine-local.py
 ```
-## Use WEB browser access localhost:8080
+## Use WEB browser access port 9080
 ```
-localhost:8080
-127.0.0.1:8080
+localhost:9080
+127.0.0.1:9080
+x.x.x.x : 9080
 ```
