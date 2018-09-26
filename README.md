@@ -24,7 +24,7 @@ sudo apt-get install -y git
 ```
 ## Auto start recommendation engine
 ```
-sh env-installation.sh
+sudo sh env-installation.sh
 ```
 ## Manually Start recommendation engine
 ```
