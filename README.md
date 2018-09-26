@@ -36,5 +36,5 @@ python ms-mlengine-local.py
 ```
 localhost:9080
 127.0.0.1:9080
-x.x.x.x : 9080
+(in the demo case) 10.0.1.16:9080
 ```
