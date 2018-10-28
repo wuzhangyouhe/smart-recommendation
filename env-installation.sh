@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#virtualenv lambda_prototype
+virtualenv lambda_prototype
 source lambda_prototype/bin/activate
 apt-get install -y build-essential libssl-dev libffi-dev python-dev python-tk curl
 curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"

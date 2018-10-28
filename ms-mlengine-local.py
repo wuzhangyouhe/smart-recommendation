@@ -8,6 +8,7 @@ import pandas as pd
 from scipy.sparse.linalg import svds
 from array import array
 import csv
+import subprocess
 
 app = Flask(__name__)
 api = Api(app)
@@ -59,7 +60,7 @@ class Users(Resource):
         self.u = None
     
     def post(self):
-        content = request.get_json()
+        content = request.get_json(force=True)
         with open('users.csv', mode='w') as csv_file:
             columns = ['user_id', 'age']
             writer = csv.DictWriter(csv_file, fieldnames=columns)
@@ -72,7 +73,7 @@ class Users(Resource):
 
 class Deals(Resource):
     def post(self):
-        content = request.get_json()
+        content = request.get_json(force=True)
         with open('deals.csv', mode='w') as csv_file:
             columns = ['deal_id', 'father_day' , 'ramadan' , 'new_year_day' , 'christmas_day' , 'july_14' , 'mother_day' , 'super_sunday' , 'fantastic_friday' , 'discount_5' , 'discount_10' , 'discount_15' , 'discount_20' , 'discount_25' , 'discount_30' , 'discount_35' , 'discount_40' , 'discount_45' , 'discount_50' , 'discount_over_50']
             writer = csv.DictWriter(csv_file, fieldnames=columns)
@@ -82,7 +83,7 @@ class Deals(Resource):
 
 class Ratings(Resource):
     def post(self):
-        content = request.get_json()
+        content = request.get_json(force=True)
         with open('rates.csv', mode='w') as csv_file:
             columns = ['user_id', 'deal_id', 'rates']
             writer = csv.DictWriter(csv_file, fieldnames=columns)
@@ -107,10 +108,17 @@ class rmdDeals(Resource):
         result = print_similar_deals(x.getDeals(), deal_id, indexes)
         return result
 
+class resetData(Resource):
+    def post(self):
+        #content = request.get_json(force=True)
+        subprocess.call(["sh", "reset-dataset.sh"])
+        return '{ "message":"Reset successful!" }'
+
 api.add_resource(Users, '/submitUsers') # Route_1
 api.add_resource(Deals, '/submitDeals') # Route_2
 api.add_resource(Ratings, '/submitRatings') # Route_3
 api.add_resource(rmdDeals, '/getRmdDeals/<clicked_deal_id>') # Route_4
+api.add_resource(resetData, '/resetData') # Route_5
 
 if __name__ == '__main__':
      app.run(host='0.0.0.0',port='9080')
