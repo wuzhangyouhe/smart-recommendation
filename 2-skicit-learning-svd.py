@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn import cross_validation as cv
 from scipy.sparse.linalg import svds
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_squared_error, mean_absolute_error
 from math import sqrt
 import json
 
@@ -34,7 +34,7 @@ class readDataset :
         deals = pd.read_csv(self.dp, sep=',', names = d_cols, encoding='latin-1')
         return deals
 
-x = readDataset('ml-100k/u.user', 'ml-100k/u.data', 'ml-100k/u.item1')
+x = readDataset('ml-100k/u.user.csv', 'ml-100k/u.data.csv', 'ml-100k/u.item1.csv')
 print x.getUsers().shape, '\n' , x.getRatings().shape, '\n' , x.getDeals().shape
 print x.getUsers().head(10) , '\n', x.getRatings().head(), '\n', x.getDeals().head()
 print x.getUsers().describe(), '\n', x.getRatings().describe(), '\n', x.getDeals().describe()
@@ -68,6 +68,8 @@ for line in F_test_data.itertuples():
 def rmse(prediction, ground_truth):
     prediction = prediction[ground_truth.nonzero()].flatten()
     ground_truth = ground_truth[ground_truth.nonzero()].flatten()
+    print ('SVD RMSE: ' + str(sqrt(mean_squared_error(prediction, ground_truth))))
+    print ('SVD MSE: ' + str(mean_absolute_error(prediction, ground_truth)))
     return sqrt(mean_squared_error(prediction, ground_truth))
 
 # Model-based collaborative filter
@@ -82,7 +84,6 @@ u, s, vt = svds(train_data_matrix, k = 50)
 s_diag_matrix=np.diag(s)
 X_pred = np.dot(np.dot(u, s_diag_matrix), vt)
 print 'User-based CF RMSE: ' + str(rmse(X_pred, test_data_matrix))
-
 print 'Final User-based CF RMSE: ' + str(rmse(X_pred, F_test_data_matrix))
 
 def top_cosine_similarity(data, deal_id, top_n):
