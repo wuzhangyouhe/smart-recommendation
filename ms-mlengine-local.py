@@ -8,11 +8,8 @@ import pandas as pd
 from scipy.sparse.linalg import svds
 from array import array
 import csv
-<<<<<<< HEAD
 import subprocess
-=======
 import pprint
->>>>>>> a5ac40db41233a210812d4c559bc74bbf2364b96
 
 app = Flask(__name__)
 api = Api(app)
