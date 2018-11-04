@@ -22,12 +22,12 @@ class readDataset :
         self.dp = dealPath
 
     def getUsers (self):
-        u_cols = ['user_id', 'age']
+        u_cols = ['user_id', 'gender', 'zip_code']
         users = pd.read_csv(self.up, sep=',', names = u_cols, encoding='latin-1')
         return users
 
     def getRatings (self):
-        r_cols = ['user_id', 'deal_id', 'rating']
+        r_cols = ['user_id', 'deal_id', 'rating', 'time']
         ratings = pd.read_csv(self.rp, sep=',', names = r_cols, encoding='latin-1')
         return ratings
 
@@ -63,10 +63,10 @@ class Users(Resource):
     def post(self):
         content = request.get_json(force=True)
         with open('users.csv', mode='w') as csv_file:
-            columns = ['user_id', 'age']
+            columns = ['user_id', 'gender', 'zip_code']
             writer = csv.DictWriter(csv_file, fieldnames=columns)
             for data in content: 
-                writer.writerow({'user_id': data['user_id'], 'age': data['age']})
+                writer.writerow({'user_id': data['user_id'], 'gender': data['gender'], 'zip_code':data['zip_code']})
         return '{ "message":"Users posted successful!" }'
 
     def get(self):
@@ -86,10 +86,10 @@ class Ratings(Resource):
     def post(self):
         content = request.get_json(force=True)
         with open('rates.csv', mode='w') as csv_file:
-            columns = ['user_id', 'deal_id', 'rates']
+            columns = ['user_id', 'deal_id', 'rates','time']
             writer = csv.DictWriter(csv_file, fieldnames=columns)
             for data in content: 
-                writer.writerow({'user_id': data['user_id'], 'deal_id': data['deal_id'],'rates': data['rates']})
+                writer.writerow({'user_id': data['user_id'], 'deal_id': data['deal_id'],'rates': data['rates'], 'time':data['time']})
         return '{ "message":"Rates posted successful!" }'
         
 class rmdDeals(Resource):
